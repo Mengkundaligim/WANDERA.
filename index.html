@@ -752,12 +752,81 @@
             background: var(--paper2)
         }
 
+        .map-section.is-map-open {
+            position: fixed;
+            inset: 0;
+            z-index: 1200;
+            overflow: auto;
+            overscroll-behavior: contain;
+            padding: clamp(22px, 4vh, 48px) 0;
+            animation: map-panel-in .45s cubic-bezier(.16, 1, .3, 1) both
+        }
+
+        body.map-is-open > header,
+        body.map-is-open #wandera-globe,
+        body.map-is-open #map-launcher,
+        body.map-is-open #back-top {
+            visibility: hidden;
+            pointer-events: none
+        }
+
+        @keyframes map-panel-in {
+            from { opacity: 0; transform: scale(.94) }
+            to { opacity: 1; transform: scale(1) }
+        }
+
+        .map-panel-close {
+            display: none;
+            position: absolute;
+            top: 16px;
+            right: max(16px, calc((100vw - 1180px) / 2));
+            z-index: 2;
+            width: 44px;
+            height: 44px;
+            border: 1px solid var(--line);
+            border-radius: 50%;
+            background: var(--card);
+            color: var(--ink);
+            font: 26px/1 var(--sans);
+            cursor: pointer
+        }
+
+        .is-map-open .map-panel-close { display: grid; place-items: center }
+        .map-panel-close:focus-visible, .map-launcher:focus-visible { outline: 3px solid #d9a441; outline-offset: 4px }
+        .map-section.is-map-open .reveal { opacity: 1; transform: none }
+
         #map {
             height: 580px;
             border: 1px solid var(--line);
             z-index: 1;
             background: #dce4df
         }
+
+        .is-map-open #map { height: calc(100vh - 300px); height: calc(100dvh - 300px); min-height: 360px }
+
+        .map-launcher {
+            position: fixed;
+            left: 10px;
+            bottom: 10px;
+            z-index: 80;
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            min-height: 48px;
+            padding: 0 17px;
+            border: 1px solid rgba(255,255,255,.36);
+            border-radius: 999px;
+            background: #0f4c5c;
+            color: #fff;
+            box-shadow: 0 10px 28px rgba(12,42,45,.24);
+            font: 600 12px var(--sans);
+            cursor: pointer;
+            transition: transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s ease
+        }
+
+        .map-launcher:hover { transform: translateY(-3px); box-shadow: 0 14px 32px rgba(12,42,45,.3) }
+        .map-launcher svg { width: 19px; height: 19px; flex: none }
+        body.map-is-open { overflow: hidden }
 
         .map-tools {
             display: flex;
@@ -2943,11 +3012,11 @@
             --globe-size: 320px;
             position: fixed;
             z-index: 70;
-            left: calc(100vw - 52px);
-            top: calc(100vh - 52px);
+            left: calc(100vw - 62px);
+            top: calc(100vh - 62px);
             width: 320px;
             height: 320px;
-            transform: translate(-50%, -50%) scale(var(--widget-scale, .325));
+            transform: translate(-50%, -50%) scale(var(--widget-scale, .425));
             transform-origin: center;
             transition: transform .6s cubic-bezier(.16, 1, .3, 1);
             filter: drop-shadow(0 14px 24px rgba(12, 42, 45, .27));
@@ -3033,12 +3102,14 @@
         }
         #wandera-globe:not(.is-large):hover .globe-tooltip,
         #wandera-globe .globe-pin-label.visible { opacity: 1; transform: translate(0,-50%); }
-        #wandera-globe:not(.is-large) .globe-tooltip { transform: translate(5px,-50%) scale(3.0769); transform-origin: right center; }
-        #wandera-globe:not(.is-large):hover .globe-tooltip { transform: translate(0,-50%) scale(3.0769); }
+        #wandera-globe:not(.is-large) .globe-tooltip { transform: translate(5px,-50%) scale(2.3529); transform-origin: right center; }
+        #wandera-globe:not(.is-large):hover .globe-tooltip { transform: translate(0,-50%) scale(2.3529); }
         #wandera-globe .globe-pin-label { z-index: 1; right: auto; }
         @media(max-width:600px) {
             #wandera-globe .globe-handle { top: -42px; }
             #wandera-globe .globe-tooltip { font-size: 9px; }
+            .map-launcher { min-height: 44px; padding: 0 14px; font-size: 11px }
+            .is-map-open #map { height: calc(100vh - 320px); height: calc(100dvh - 320px); min-height: 320px }
         }
         @media(prefers-reduced-motion:reduce) {
             #wandera-globe, #wandera-globe .globe-handle, #wandera-globe .globe-tooltip, #wandera-globe .globe-pin-label { transition: none !important; }
@@ -4491,6 +4562,8 @@
         </section>
         <section class="section-pad map-section" id="map-section">
             <div class="wrap">
+                <button class="map-panel-close" id="map-panel-close" type="button" aria-label="Close map"
+                    title="Close map">×</button>
                 <div class="section-head reveal">
                     <div>
                         <div class="eyebrow" data-i18n="mapEyebrow">Everywhere, at once</div>
@@ -5225,6 +5298,16 @@
         <span class="globe-tooltip" role="tooltip">Drag · click · double-click = map</span>
         <span class="globe-pin-label" aria-live="polite"></span>
     </div>
+    <button class="map-launcher" id="map-launcher" type="button" aria-label="Open full-screen map"
+        title="Open full-screen map">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+            stroke-linejoin="round" aria-hidden="true">
+            <path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"></path>
+            <path d="M9 3v15m6-12v15"></path>
+            <circle cx="15" cy="9" r="2"></circle>
+        </svg>
+        <span id="map-launcher-label">Open map</span>
+    </button>
     <!-- FLOATING GLOBE WIDGET — JS -->
     <script>
         /* PINS: [place, latitude, longitude] */
@@ -5249,23 +5332,25 @@
             const storageKey = "wandera-globe-position";
             const radius = 150;
             const rad = Math.PI / 180;
+            const leftwardSpin = 0.00018;
             const saved = (() => {
                 try { return JSON.parse(localStorage.getItem(storageKey) || "null"); }
                 catch { return null; }
             })();
             const point = saved && Number.isFinite(saved.x) && Number.isFinite(saved.y)
                 ? { x: saved.x, y: saved.y }
-                : { x: innerWidth - 52, y: innerHeight - 52 };
+                : { x: innerWidth - 62, y: innerHeight - 62 };
             let large = false, pointer = null, hoverPin = null, pinsOnScreen = [];
             let lon = -25 * rad, lat = 8 * rad, targetLon = lon, targetLat = lat;
             let velocityX = 0, velocityY = 0, raf = 0, lastFrame = 0, resizeObserver;
+            let autoRotateAt = performance.now() + 2000;
             let pendingClick = 0, lastPointerUp = 0;
 
-            function scaleFactor() { return large ? Math.max(.2, Math.min(1, (innerWidth - 24) / 320, (innerHeight - 76) / 370)) : .325; }
-            function size() { return (large ? 160 : 52); }
+            function scaleFactor() { return large ? Math.max(.2, Math.min(1.125, (innerWidth - 24) / 360, (innerHeight - 76) / 416)) : .425; }
+            function pauseAutoRotation() { autoRotateAt = performance.now() + 2000; }
             function clampPoint() {
-                const edge = large ? 160 * scaleFactor() : 52;
-                const topEdge = large ? 208 * scaleFactor() : edge;
+                const edge = (large ? 160 * scaleFactor() : 52) + 10;
+                const topEdge = (large ? 208 * scaleFactor() : 52) + 10;
                 point.x = Math.max(edge, Math.min(innerWidth - edge, point.x));
                 point.y = Math.max(topEdge, Math.min(innerHeight - edge, point.y));
                 root.style.left = `${point.x}px`;
@@ -5278,8 +5363,10 @@
             }
             function setLarge(value) {
                 large = value;
+                pauseAutoRotation();
                 root.classList.toggle("is-large", large);
                 root.setAttribute("aria-label", large ? "Expanded interactive destination globe" : "Interactive destination globe");
+                canvas.setAttribute("aria-expanded", String(large));
                 clampPoint();
                 if (large) root.querySelector(".globe-close").focus({ preventScroll: true });
             }
@@ -5375,13 +5462,19 @@
                 const dt = lastFrame ? Math.min(40, time - lastFrame) : 16;
                 lastFrame = time;
                 if (!pointer && !reduced.matches) {
+                    let autoSpinning = false;
                     if (Math.abs(velocityX) > .00002 || Math.abs(velocityY) > .00002) {
                         lon += velocityX * dt;
                         lat = Math.max(-65 * rad, Math.min(65 * rad, lat + velocityY * dt));
                         velocityX *= .94;
                         velocityY *= .94;
-                    } else lon += (large ? .000035 : .0001) * dt;
-                    lon += (targetLon - lon) * .12;
+                    } else if (time >= autoRotateAt) {
+                        const spin = leftwardSpin * dt;
+                        lon += spin;
+                        targetLon += spin;
+                        autoSpinning = true;
+                    }
+                    if (!autoSpinning) lon += (targetLon - lon) * .12;
                     lat += (targetLat - lat) * .12;
                 }
                 draw(time);
@@ -5401,20 +5494,49 @@
             }
             function openMap() {
                 setLarge(false);
+                openMapPanel(canvas);
+            }
+            let mapOpener = null, previousBodyOverflow = "";
+            const mapSection = document.getElementById("map-section");
+            const mapClose = document.getElementById("map-panel-close");
+            function openMapPanel(opener = document.getElementById("map-launcher")) {
+                if (mapSection.classList.contains("is-map-open")) return;
+                mapOpener = opener;
+                previousBodyOverflow = document.body.style.overflow;
+                document.body.classList.add("map-is-open");
+                mapSection.classList.add("is-map-open");
+                mapSection.setAttribute("role", "dialog");
+                mapSection.setAttribute("aria-modal", "true");
                 window.dispatchEvent(new CustomEvent("globe:openmap"));
-                (document.getElementById("map") || document.querySelector('[data-section="map"]'))?.scrollIntoView({ behavior: reduced.matches ? "auto" : "smooth", block: "center" });
+                requestAnimationFrame(() => {
+                    mapClose.focus({ preventScroll: true });
+                });
+                mapSection.addEventListener("animationend", () => state.map?.invalidateSize({ pan: false }), { once: true });
+            }
+            function closeMapPanel() {
+                if (!mapSection.classList.contains("is-map-open")) return;
+                mapSection.classList.remove("is-map-open");
+                mapSection.removeAttribute("role");
+                mapSection.removeAttribute("aria-modal");
+                document.body.classList.remove("map-is-open");
+                document.body.style.overflow = previousBodyOverflow;
+                requestAnimationFrame(() => state.map?.invalidateSize({ pan: false }));
+                mapOpener?.focus?.({ preventScroll: true });
+                mapOpener = null;
             }
             function visitPin(pin) {
                 if (!pin) return;
                 targetLon = pin.lon * rad;
                 targetLat = pin.lat * rad;
                 targetLon = lon + Math.atan2(Math.sin(targetLon - lon), Math.cos(targetLon - lon));
+                pauseAutoRotation();
                 window.dispatchEvent(new CustomEvent("globe:pin", { detail: { name: pin.name, lat: pin.lat, lon: pin.lon } }));
                 if (typeof window.openDestination === "function") window.openDestination(pin.name);
             }
             canvas.addEventListener("pointerdown", event => {
                 event.preventDefault();
                 canvas.setPointerCapture(event.pointerId);
+                pauseAutoRotation();
                 const start = pointFromEvent(event);
                 pointer = { ...start, lastX: start.x, lastY: start.y, moved: false, mode: large ? "rotate" : "move", time: performance.now() };
                 velocityX = velocityY = 0;
@@ -5451,10 +5573,10 @@
                 if (!pointer) return;
                 const was = pointer, now = performance.now();
                 pointer = null;
+                pauseAutoRotation();
                 if (was.mode === "move") {
                     if (was.moved) {
                         lastPointerUp = 0;
-                        if (!large) point.x = point.x < innerWidth / 2 ? size() : innerWidth - size();
                         clampPoint(); savePosition();
                     } else if (now - lastPointerUp < 320) {
                         clearTimeout(pendingClick); pendingClick = 0; lastPointerUp = 0; openMap();
@@ -5471,6 +5593,7 @@
             root.querySelector(".globe-handle").addEventListener("pointerdown", event => {
                 if (event.target.closest(".globe-close")) return;
                 event.preventDefault(); event.stopPropagation();
+                pauseAutoRotation();
                 root.setPointerCapture(event.pointerId);
                 pointer = { x: event.clientX, y: event.clientY, lastX: event.clientX, lastY: event.clientY, moved: false, mode: "move" };
             });
@@ -5480,12 +5603,31 @@
                 if (Math.hypot(event.clientX - pointer.x, event.clientY - pointer.y) > 5) pointer.moved = true;
                 point.x += dx; point.y += dy; pointer.lastX = event.clientX; pointer.lastY = event.clientY; clampPoint();
             });
-            root.addEventListener("pointerup", () => { if (pointer?.mode === "move") { pointer = null; savePosition(); } });
+            root.addEventListener("pointerup", () => { if (pointer?.mode === "move") { pointer = null; pauseAutoRotation(); savePosition(); } });
             root.querySelector(".globe-close").addEventListener("click", () => { setLarge(false); canvas.focus({ preventScroll: true }); });
+            document.getElementById("map-launcher").addEventListener("click", event => openMapPanel(event.currentTarget));
+            mapClose.addEventListener("click", closeMapPanel);
+            mapSection.addEventListener("keydown", event => {
+                if (event.key === "Escape") { event.preventDefault(); closeMapPanel(); }
+            });
+            function translateMapButtons(language) {
+                const labels = {
+                    en: ["Open map", "Open full-screen map", "Close map"],
+                    uz: ["Xaritani ochish", "To‘liq ekranda xaritani ochish", "Xaritani yopish"],
+                    ru: ["Открыть карту", "Открыть карту на весь экран", "Закрыть карту"]
+                }[language] || ["Open map", "Open full-screen map", "Close map"];
+                document.getElementById("map-launcher-label").textContent = labels[0];
+                document.getElementById("map-launcher").setAttribute("aria-label", labels[1]);
+                document.getElementById("map-launcher").title = labels[1];
+                mapClose.setAttribute("aria-label", labels[2]);
+                mapClose.title = labels[2];
+            }
+            document.getElementById("language").addEventListener("change", event => translateMapButtons(event.target.value));
+            translateMapButtons(state.lang);
             canvas.addEventListener("keydown", event => {
                 if (event.key === "Escape" && large) { setLarge(false); return; }
-                if (event.key === "ArrowLeft" || event.key === "ArrowRight") { lon += (event.key === "ArrowRight" ? 1 : -1) * 8 * rad; targetLon = lon; draw(); event.preventDefault(); }
-                if (event.key === "ArrowUp" || event.key === "ArrowDown") { lat = Math.max(-65 * rad, Math.min(65 * rad, lat + (event.key === "ArrowUp" ? 1 : -1) * 8 * rad)); targetLat = lat; draw(); event.preventDefault(); }
+                if (event.key === "ArrowLeft" || event.key === "ArrowRight") { pauseAutoRotation(); lon += (event.key === "ArrowRight" ? 1 : -1) * 8 * rad; targetLon = lon; draw(); event.preventDefault(); }
+                if (event.key === "ArrowUp" || event.key === "ArrowDown") { pauseAutoRotation(); lat = Math.max(-65 * rad, Math.min(65 * rad, lat + (event.key === "ArrowUp" ? 1 : -1) * 8 * rad)); targetLat = lat; draw(); event.preventDefault(); }
                 if (event.key === "Enter") visitPin(hoverPin || nearestPin(160, 160));
             });
             window.addEventListener("keydown", event => { if (event.key === "Escape" && large) setLarge(false); });
